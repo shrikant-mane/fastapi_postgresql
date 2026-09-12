@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from mangum import Mangum
 from Routes import user
 # from connections import engine, Base
 
@@ -14,4 +14,5 @@ def health_check():
 
 app.include_router(user.router)
 
+handler = Mangum(app)
 

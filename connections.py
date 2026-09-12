@@ -43,6 +43,3 @@ SessionLocal = sessionmaker(
 
 # Base class for SQLAlchemy models
 Base = declarative_base()
-
-
-
