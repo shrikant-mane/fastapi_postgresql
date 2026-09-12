@@ -31,8 +31,22 @@ def get_db():
     finally:
         db.close()
 
-
 db_dependency = Annotated[Session, Depends(get_db)]
+
+
+
+@router.get('/get', status_code=status.HTTP_200_OK)
+async def get_users(db: db_dependency):
+    try:
+        users = db.query(User).all()
+        return users
+
+    except SQLAlchemyError as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database Error: {str(ex)}"
+        )
+
 @router.post('/create',status_code=status.HTTP_201_CREATED)
 async def create_user(user: CreateUserRequest, db: db_dependency):
     try:
@@ -70,5 +84,26 @@ async def update_email(db:db_dependency,email: str, id: int ):
     except HTTPException as ex:
         raise ex
 
+
+@router.delete('/delete/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(user_id: int, db: db_dependency):
+    try:
+        user_model = db.query(User).filter(User.id == user_id).first()
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        db.delete(user_model)
+        db.commit()
+
+    except SQLAlchemyError as ex:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database Error: {str(ex)}"
+        )
 
 
